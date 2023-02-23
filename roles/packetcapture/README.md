@@ -1,7 +1,17 @@
+##TO DO
+
+- Add variables for packet filter
+- Completed pod deletion
+- Solve image pipelining and cred management for both operator
+  pod and capture pod.
+- add meta.namespace var for capture pods
+- cron job for moving to s3
+
+......
 Role Name
 =========
 
-A brief description of the role goes here.
+
 
 Requirements
 ------------

@@ -1,0 +1,8 @@
+---
+- name: creating capture pods
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'capture_pod.yml.j2')  }}"
+  with_items:
+    -  "{{discovered_pods_info}}"
+

@@ -1,0 +1,23 @@
+---
+
+- name: find list of completed pods in capture namespace
+  k8s_info:
+    kind: Pod
+    namespace: default
+    validate_certs: false
+    field_selectors:
+      - status.phase=Succeded
+  register: pod_details
+
+- set_fact:
+    pods_to_delete: "{{ pod_details | json_query('resources[].metadata.name') }}"
+
+- name: delete pods
+  k8s:
+    name: "{{item}}"
+    api_version: v1
+    kind: Pod
+    state: absent
+  with_items:
+    - "{{pods_to_delete}}"
+  when: "{{ pods_to_delete | length > `0` }}"

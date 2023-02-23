@@ -1,0 +1,27 @@
+---
+
+- name:  "fetching {{target_kind_name}} info from {{namespace}}"
+  k8s_info:
+    kind: "{{target_kind}}"
+    namespace: "{{namespace}}"
+    name: "{{target_kind_name}}"
+    validate_certs: false
+  register: deployment_info
+
+ 
+- set_fact:
+    deployment_uid: "{{ deployment_info |  json_query('resources[].metadata.uid') | first}}"
+
+
+- name:  "fetching active target Replicaset  info from {{namespace}}"
+  k8s_info:
+    kind: ReplicaSet
+    namespace: "{{namespace}}"
+    validate_certs: false
+  register: replicaset_info
+
+- set_fact:
+     owner_uid: "{{ replicaset_info | json_query(query1) | first}}"
+  vars:
+     query1: "resources[?status.replicas > `0`  && metadata.ownerReferences[0].uid == '{{deployment_uid}}'].metadata.uid"
+

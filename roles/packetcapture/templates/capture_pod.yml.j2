@@ -1,0 +1,79 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: {% set node_name = item.Node.split('.')[0] %}{{node_name}}-{{item.Pod_Uid}}
+  namespace: default
+  labels:
+    name: capturepod
+spec:
+  restartPolicy: Never
+  serviceAccountName: default
+#set up var
+  imagePullSecrets:
+    - name: quaytest-secret-local
+  hostPID: true
+  priority: 0
+  schedulerName: default-scheduler
+  nodeName: {{item.Node}}
+  hostNetwork: true
+  enableServiceLinks: true
+  terminationGracePeriodSeconds: 30
+  preemptionPolicy: PreemptLowerPriority
+  securityContext:
+    seLinuxOptions:
+      level: 's0:c28,c12'
+    fsGroup: 1000
+  containers:
+    - resources: {}
+      stdin: true
+      terminationMessagePath: /dev/termination-log
+      stdinOnce: true
+      name: container-01
+      command:
+        - bash
+        -  '-c'
+        - /scripts/pcapscript.sh
+      env:
+        - name: TMOUT
+          value: '900'
+        - name: POD
+          value: {{item.Pod_Name}}
+        - name: NAMESPACE
+          value: {{namespace}}
+      securityContext:
+        capabilities:
+          add:
+            - MKNOD
+        privileged: true
+        runAsUser: 0
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - name: host
+          mountPath: /host
+        - name: task-pv-storage
+          mountPath: "/tmp"
+        - name: pcapscript
+          mountPath: /scripts
+      terminationMessagePolicy: File
+      tty: true
+#set up var
+      image: >-
+        model-registry.apps.ocpadm001vm002400.vodafone.com.au/mt112711/openshift-test:latest
+
+
+  serviceAccount: default
+  volumes:
+    - name: host
+      hostPath:
+        path: /
+        type: Directory
+    - name: task-pv-storage
+      persistentVolumeClaim:
+        claimName: task-pv-claim-fs
+    - name: pcapscript
+      configMap:
+        name: pcapscript
+        defaultMode: 0777
+
+  dnsPolicy: ClusterFirst
+

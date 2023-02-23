@@ -1,0 +1,13 @@
+---
+
+- name: "fetching {{target_kind_name}} info from {{namespace}}"
+  k8s_info:
+    kind: "{{target_kind}}"
+    namespace: "{{namespace}}"
+    name: "{{target_kind_name}}"
+    validate_certs: false
+  register: target_resource_info
+
+- set_fact:
+    owner_uid: "{{ target_resource_info | json_query('resources[].metadata.uid') | first }}"
+
